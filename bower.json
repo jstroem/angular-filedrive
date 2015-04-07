@@ -1,0 +1,10 @@
+{
+  "name": "angular-filedrive",
+  "version": "0.0.1",
+  "main": "src/filedrive.css",
+  "ignore": [],
+  "dependencies": {
+    "ng-context-menu": "~1.0.1"
+  },
+  "devDependencies": {}
+}
