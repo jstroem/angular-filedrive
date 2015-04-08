@@ -55,7 +55,7 @@ gulp.task('build:target', ['clean', 'mkdir'], function(){
         beautify: true
       }
     }))
-    .pipe(wrap('(function(angular, filesize){\n<%= contents %>\n})(angular, filesize);'))
+    .pipe(wrap('(function(angular, filesize){\n<%= contents %>\n})(angular, global !== undefined ? global.filesize : window.filesize);'))
     .pipe(gulp.dest('./dist'));
 });
 

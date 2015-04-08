@@ -82,7 +82,7 @@ angular.module("Filedrive").service('FiledriveService', ['$q','$filter', '$sce',
 		if (file.size === null || file.size === undefined)
 			return '';
 		else 
-			return global !== undefined ? global.filesize(file.size) : window.filesize(file.size);
+			return filesize(file.size);
 			
 	};
 

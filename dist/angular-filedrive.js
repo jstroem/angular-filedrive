@@ -1171,7 +1171,7 @@ angular.module("Filedrive").service("FiledriveService", [ "$q", "$filter", "$sce
         return $filter("date")(date, format);
     };
     this.getSize = function(file) {
-        return null === file.size || void 0 === file.size ? "" : void 0 !== global ? global.filesize(file.size) : window.filesize(file.size);
+        return null === file.size || void 0 === file.size ? "" : filesize(file.size);
     };
     this.getFiletype = function(file) {
         if (void 0 === file || null === file) return "";
@@ -1265,4 +1265,4 @@ angular.module("Filedrive").service("FiledriveUploadCache", [ "FiledriveService"
         return files[dir] || [];
     };
 } ]);
-})(angular, filesize);
+})(angular, global !== undefined ? global.filesize : window.filesize);
