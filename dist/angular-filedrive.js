@@ -1021,72 +1021,34 @@ angular.module("Filedrive", [ "ng-context-menu" ]);
     };
 }(this);
 
-angular.module("Filedrive").directive("filedriveList", [ "FiledriveService", "FiledriveUploadCache", "$location", "$q", function(FiledriveService, UploadCache, $location, $q) {
+angular.module("Filedrive").directive("deleteFiledriveModal", [ "FiledriveService", function(FiledriveService) {
     var controller = function($scope, $element, $atts, ctrl) {
-        $scope.options = FiledriveService.setupOptions($atts, $scope.defaultOptions);
-        $scope.state = "loading";
-        $scope.files = [];
-        $scope.directory = null;
-        $scope["interface"].on("Filedrive:ChangeDirectory", function(e, dir) {
-            $scope.directory = dir || $scope.options.directory;
-            $location.search("dir", $scope.directory);
-            getFiles();
-        });
-        $scope["interface"].on("Filedrive:UpdateDirectory", function(e) {
-            getFiles();
-        });
-        var getFiles = function() {
-            $scope.state = "loading";
-            $scope["interface"].getFiles($scope.directory).then(function(res) {
-                $scope.$apply(function() {
-                    $scope.state = "show";
-                    $scope.files = res.concat(UploadCache.getFiles($scope.directory));
-                });
-            }, onError);
-        }, onError = function(obj) {
-            $scope.$apply(function() {
-                $scope.state = "error";
-                console.log(obj);
-            });
-        };
-        $scope.openFile = function(file, e) {
-            e.stopPropagation();
-            e.preventDefault();
-            $scope["interface"].openFile(file);
-        };
-        $scope.dropFile = function(fileEntries) {
-            if (fileEntries && void 0 !== fileEntries.length) for (var i = 0; i < fileEntries.length; i++) {
-                var fileEntry = fileEntries[i];
-                FiledriveService.createNewFilename(fileEntry, $.proxy($scope["interface"].exists, $scope["interface"])).then(function(name) {
-                    $scope.files.push(UploadCache.addFile($scope["interface"].upload(fileEntry, name), getFiles));
-                }, onError);
-            }
-        };
-        $scope.deleteFile = function(file) {
-            confirm($scope.options.deleteConfirmText) && $scope["interface"].deleteFile(file);
-        };
-        $scope.renameFile = function(file) {
-            var name = $scope.getFilename(file.path);
-            (name = prompt($scope.options.renamePromptText, name)) && $scope["interface"].rename(file, name);
-        };
-        $scope.newFolder = function() {
-            var name = $scope.options.newFolderDefaultText;
-            (name = prompt($scope.options.newFolderPromptText, name)) && $scope["interface"].createFolder(name);
-        };
-        $scope["interface"].changeDirectory($location.search().dir);
-        $scope.getParentDirectory = FiledriveService.getParentDirectory;
         $scope.getFilename = FiledriveService.getFilename;
-        $scope.getDate = FiledriveService.getDate;
-        $scope.getSize = FiledriveService.getSize;
-        $scope.getMimetype = FiledriveService.getMimetype;
     };
+    return {
+        restrict: "E",
+        scope: {
+            file: "=file",
+            onDeleteFile: "&onDeleteFile",
+            name: "=name",
+            title: "=title",
+            content: "=content",
+            accept: "=accept",
+            reject: "=reject"
+        },
+        template: '<div class="modal fade" id="{{name}}" tabindex="-1" role="dialog" aria-labelledby="{{name}}Title" aria-hidden="true">	<div class="modal-dialog">		<div class="modal-content">			<div class="modal-header">				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>				<h4 class="modal-title" id="{{name}}Title">{{title}}: {{getFilename(file)}}</h4>			</div>			<div class="modal-body">				{{content}}			</div>			<div class="modal-footer">				<button type="button" class="btn btn-default" data-dismiss="modal">{{reject}}</button>				<button type="button" class="btn btn-primary" ng-click="onDeleteFile">{{accept}}</button>			</div>		</div>	</div></div>',
+        link: controller
+    };
+} ]);
+
+angular.module("Filedrive").directive("filedriveList", [ "FiledriveController", function(controller) {
     return {
         restrict: "E",
         scope: {
             defaultOptions: "=options",
             "interface": "=interface"
         },
-        template: '<div ng-if="state == \'loading\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.loadingHtml"></h1></div><div ng-if="state == \'error\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.errorHtml"></h1></div><div ng-if="state == \'show\'" class="filedrive">	<table class="table table-striped" context-menu data-target="context-menu-directory">		<tr>			<th>Filename:</th>			<th>Oprettet:</th>			<th>Sidst redigeret:</th>			<th>Størrelse:</th>			<th>Type:</th>		</tr>		<tr class="directory entity" ng-if="directory != options.directory">			<td><a href ng-click="openFile(getParentDirectory(directory), $event)">..</a></td>			<td></td>			<td></td>			<td></td>			<td></td>		</tr>		<tr ng-repeat="file in files" ng-class="{\'directory\': file.directory, \'file\': !file.directory, \'uploading\': file.uploading}"  			class="entity" ng-if="directory != file.path" context-menu data-target="context-menu-{{$index}}">			<td class="filename"><a href ng-click="openFile(file, $event)">{{getFilename(file)}}</a></td>			<td class="created">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getDate(file.created_at, options.dateFormat)}}</a>				<span ng-if="file.uploading">{{getDate(file.created_at, options.dateFormat)}}</span>			</td>			<td class="last_modified">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getDate(file.last_modified, options.dateFormat)}}</a>				<span ng-if="file.uploading">{{getDate(file.last_modified, options.dateFormat)}}</span>			</td>			<td class="size">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getSize(file)}}</a>				<span ng-if="file.uploading">{{getSize(file)}}</span>			</td>			<td class="type">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getMimetype(file)}}</a>				<span ng-if="file.uploading">{{getMimetype(file)}}</span>			</td>		</tr>	</table>	<div ng-repeat="file in files" class="dropdown context-menu" id="context-menu-{{$index}}" ng-if="directory != file.path">		<ul class="dropdown-menu" role="menu">			<li><a href ng-click="renameFile(file)">{{options.renameContextMenuText}}</a></li>			<li><a href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a></li>			<li><a href ng-click="deleteFile(file)">{{options.deleteContextMenuText}}</a></li>		</ul>	</div>	<div class="dropdown context-menu" id="context-menu-directory">		<ul class="dropdown-menu" role="menu">			<li><a href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a></li>		</ul>	</div>	<filedrop class="filedrop" data-drop="dropFile" data-drop-html="options.dropHtml"></filedrop></div>',
+        template: '<div ng-if="state == \'loading\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.loadingHtml"></h1></div><div ng-if="state == \'error\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.errorHtml"></h1></div><div ng-if="state == \'show\'" class="filedrive">	<table class="table table-striped" context-menu data-target="context-menu-directory">		<tr>			<th>Filename:</th>			<th>Oprettet:</th>			<th>Sidst redigeret:</th>			<th>Størrelse:</th>			<th>Type:</th>		</tr>		<tr class="directory entity" ng-if="directory != options.directory">			<td><a href ng-click="openFile(getParentDirectory(directory), $event)">..</a></td>			<td></td>			<td></td>			<td></td>			<td></td>		</tr>		<tr ng-repeat="file in files" ng-class="{\'directory\': file.directory, \'file\': !file.directory, \'uploading\': file.uploading}"  			class="entity" ng-if="directory != file.path" context-menu data-target="context-menu-{{$index}}">			<td class="filename">				<a href ng-click="openFile(file, $event)" ng-if="!file.uploading">{{getFilename(file)}}</a>				<span ng-if="file.uploading"><i class="fa fa-spinner fa-pulse"></i> {{getFilename(file)}}</span>			</td>			<td class="created">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getDate(file.created_at, options.dateFormat)}}</a>				<span ng-if="file.uploading">{{getDate(file.created_at, options.dateFormat)}}</span>			</td>			<td class="last_modified">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getDate(file.last_modified, options.dateFormat)}}</a>				<span ng-if="file.uploading">{{getDate(file.last_modified, options.dateFormat)}}</span>			</td>			<td class="size">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getSize(file)}}</a>				<span ng-if="file.uploading">{{getSize(file)}}</span>			</td>			<td class="type">				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getMimetype(file)}}</a>				<span ng-if="file.uploading">{{getMimetype(file)}}</span>			</td>		</tr>	</table>	<div ng-repeat="file in files" class="dropdown context-menu" id="context-menu-{{$index}}" ng-if="directory != file.path">		<ul class="dropdown-menu" role="menu">			<li><a href ng-click="renameFile(file)">{{options.renameContextMenuText}}</a></li>			<li><a href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a></li>			<li><a href ng-click="deleteFile(file)">{{options.deleteContextMenuText}}</a></li>		</ul>	</div>	<div class="dropdown context-menu" id="context-menu-directory">		<ul class="dropdown-menu" role="menu">			<li><a href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a></li>		</ul>	</div>	<filedrop class="filedrop" data-drop="dropFile" data-drop-html="options.dropHtml"></filedrop></div>',
         link: controller
     };
 } ]);
@@ -1159,26 +1121,6 @@ angular.module("Filedrive").directive("filedrop", [ "$timeout", function($timeou
     };
 } ]);
 
-angular.module("Filedrive").directive("deleteFiledriveModal", [ "FiledriveService", function(FiledriveService) {
-    var controller = function($scope, $element, $atts, ctrl) {
-        $scope.getFilename = FiledriveService.getFilename;
-    };
-    return {
-        restrict: "E",
-        scope: {
-            file: "=file",
-            onDeleteFile: "&onDeleteFile",
-            name: "=name",
-            title: "=title",
-            content: "=content",
-            accept: "=accept",
-            reject: "=reject"
-        },
-        template: '<div class="modal fade" id="{{name}}" tabindex="-1" role="dialog" aria-labelledby="{{name}}Title" aria-hidden="true">	<div class="modal-dialog">		<div class="modal-content">			<div class="modal-header">				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>				<h4 class="modal-title" id="{{name}}Title">{{title}}: {{getFilename(file)}}</h4>			</div>			<div class="modal-body">				{{content}}			</div>			<div class="modal-footer">				<button type="button" class="btn btn-default" data-dismiss="modal">{{reject}}</button>				<button type="button" class="btn btn-primary" ng-click="onDeleteFile">{{accept}}</button>			</div>		</div>	</div></div>',
-        link: controller
-    };
-} ]);
-
 angular.module("Filedrive").service("FiledriveService", [ "$q", "$filter", "$sce", function($q, $filter, $sce) {
     var self = this;
     this.setupOptions = function($atts, options) {
@@ -1229,7 +1171,7 @@ angular.module("Filedrive").service("FiledriveService", [ "$q", "$filter", "$sce
         return $filter("date")(date, format);
     };
     this.getSize = function(file) {
-        return null === file.size || void 0 === file.size ? "" : filesize(file.size);
+        return null === file.size || void 0 === file.size ? "" : void 0 !== global ? global.filesize(file.size) : window.filesize(file.size);
     };
     this.getFiletype = function(file) {
         if (void 0 === file || null === file) return "";
@@ -1240,6 +1182,71 @@ angular.module("Filedrive").service("FiledriveService", [ "$q", "$filter", "$sce
     this.getMimetype = function(file) {
         return file.directory ? "" : mimetype[self.getFiletype(file)];
     };
+} ]);
+
+angular.module("Filedrive").factory("FiledriveController", [ "FiledriveService", "FiledriveUploadCache", "$location", function(FiledriveService, UploadCache, $location) {
+    var controller = function($scope, $element, $atts, ctrl) {
+        $scope.options = FiledriveService.setupOptions($atts, $scope.defaultOptions);
+        $scope.state = "loading";
+        $scope.files = [];
+        $scope.directory = null;
+        $scope["interface"].on("Filedrive:ChangeDirectory", function(e, dir) {
+            $scope.directory = dir || $scope.options.directory;
+            $location.search("dir", $scope.directory);
+            getFiles();
+        });
+        $scope["interface"].on("Filedrive:UpdateDirectory", function(e) {
+            getFiles();
+        });
+        $scope["interface"].on("Filedrive:Error", function(e, obj) {
+            onError(obj);
+        });
+        var getFiles = function() {
+            $scope.state = "loading";
+            $scope["interface"].getFiles($scope.directory).then(function(res) {
+                $scope.$apply(function() {
+                    $scope.state = "show";
+                    $scope.files = res.concat(UploadCache.getFiles($scope.directory));
+                });
+            }, onError);
+        }, onError = function(obj) {
+            $scope.$apply(function() {
+                $scope.state = "error";
+                console.log(obj);
+            });
+        };
+        $scope.openFile = function(file, e) {
+            e.stopPropagation();
+            e.preventDefault();
+            $scope["interface"].openFile(file);
+        };
+        $scope.dropFile = function(fileEntries) {
+            if (fileEntries && void 0 !== fileEntries.length) for (var i = 0; i < fileEntries.length; i++) {
+                var fileEntry = fileEntries[i];
+                FiledriveService.createNewFilename(fileEntry, $.proxy($scope["interface"].exists, $scope["interface"])).then(function(name) {
+                    $scope.files.push(UploadCache.addFile($scope["interface"].upload(fileEntry, name), getFiles));
+                }, onError);
+            }
+        };
+        $scope.deleteFile = function(file) {
+            confirm($scope.options.deleteConfirmText) && $scope["interface"].deleteFile(file);
+        };
+        $scope.renameFile = function(file) {
+            var name = $scope.getFilename(file.path);
+            (name = prompt($scope.options.renamePromptText, name)) && $scope["interface"].rename(file, name);
+        };
+        $scope.newFolder = function() {
+            var name = $scope.options.newFolderDefaultText;
+            (name = prompt($scope.options.newFolderPromptText, name)) && $scope["interface"].createFolder(name);
+        };
+        $scope["interface"].changeDirectory($location.search().dir || $scope.options.directory);
+        $scope.getParentDirectory = FiledriveService.getParentDirectory;
+        $scope.getFilename = FiledriveService.getFilename;
+        $scope.getDate = FiledriveService.getDate;
+        $scope.getSize = FiledriveService.getSize;
+        $scope.getMimetype = FiledriveService.getMimetype;
+    };
+    return controller;
 } ]);
 
 angular.module("Filedrive").service("FiledriveUploadCache", [ "FiledriveService", "$q", function(FiledriveService, $q) {
