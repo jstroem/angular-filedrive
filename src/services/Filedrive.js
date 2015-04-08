@@ -81,8 +81,9 @@ angular.module("Filedrive").service('FiledriveService', ['$q','$filter', '$sce',
 	this.getSize = function(file){
 		if (file.size === null || file.size === undefined)
 			return '';
-		else
-			return filesize(file.size);
+		else 
+			return global !== undefined ? global.filesize(file.size) : window.filesize(file.size);
+			
 	};
 
 	this.getFiletype = function(file){

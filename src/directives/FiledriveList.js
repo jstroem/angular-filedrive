@@ -1,85 +1,4 @@
-angular.module("Filedrive").directive('filedriveList', ['FiledriveService','FiledriveUploadCache', '$location', '$q', function(FiledriveService,UploadCache, $location, $q){
-
-	var controller = function($scope, $element, $atts, ctrl){
-
-		$scope.options = FiledriveService.setupOptions($atts, $scope.defaultOptions);
-		$scope.state = 'loading';
-		$scope.files = [];
-		$scope.directory = null;
-
-		$scope.interface.on('Filedrive:ChangeDirectory', function(e, dir){
-			$scope.directory = dir || $scope.options.directory;
-			$location.search('dir', $scope.directory);
-			getFiles();
-		});
-
-		$scope.interface.on('Filedrive:UpdateDirectory', function(e){ getFiles(); });
-
-		var getFiles = function(){
-			$scope.state = 'loading';
-			$scope.interface.getFiles($scope.directory).then(function(res){
-				$scope.$apply(function(){
-					$scope.state = 'show';
-					$scope.files = res.concat(UploadCache.getFiles($scope.directory));
-				});
-			}, onError);
-		}
-
-		var onError = function(obj){
-			$scope.$apply(function(){
-				$scope.state = 'error';
-				console.log(obj);
-			});
-		};
-
-		
-		$scope.openFile = function(file, e){
-			e.stopPropagation();
-		    e.preventDefault();
-		    $scope.interface.openFile(file);
-		}
-
-		$scope.dropFile = function(fileEntries){
-			if (!fileEntries || fileEntries.length === undefined)
-				return;
-			for(var i = 0; i < fileEntries.length; i++) {
-				var fileEntry = fileEntries[i];
-				FiledriveService.createNewFilename(fileEntry, $.proxy($scope.interface.exists, $scope.interface)).then(function(name){
-					$scope.files.push(UploadCache.addFile($scope.interface.upload(fileEntry, name), getFiles));
-				}, onError);
-			}
-		};
-
-		$scope.deleteFile = function(file){
-			if (confirm($scope.options.deleteConfirmText)){
-				$scope.interface.deleteFile(file);
-			}
-		}
-
-		$scope.renameFile = function(file){
-			var name = $scope.getFilename(file.path);
-			if(name = prompt($scope.options.renamePromptText, name)) {
-				$scope.interface.rename(file, name);
-			}
-		}
-
-		$scope.newFolder = function(){
-			var name = $scope.options.newFolderDefaultText;
-			if(name = prompt($scope.options.newFolderPromptText, name)) {
-				$scope.interface.createFolder(name);
-			}
-		}
-
-		$scope.interface.changeDirectory($location.search().dir);
-
-		$scope.getParentDirectory = FiledriveService.getParentDirectory;
-		$scope.getFilename = FiledriveService.getFilename;
-		$scope.getDate = FiledriveService.getDate;
-		$scope.getSize = FiledriveService.getSize;
-		$scope.getMimetype = FiledriveService.getMimetype;
-	};
-
-
+angular.module("Filedrive").directive('filedriveList', ['FiledriveController', function(controller){
   	return {
     	restrict: 'E',
     	scope: {
@@ -106,7 +25,10 @@ angular.module("Filedrive").directive('filedriveList', ['FiledriveService','File
 					'		</tr>'+
 					'		<tr ng-repeat="file in files" ng-class="{\'directory\': file.directory, \'file\': !file.directory, \'uploading\': file.uploading}" '+
 					' 			class="entity" ng-if="directory != file.path" context-menu data-target="context-menu-{{$index}}">'+
-					'			<td class="filename"><a href ng-click="openFile(file, $event)">{{getFilename(file)}}</a></td>'+
+					'			<td class="filename">'+
+					'				<a href ng-click="openFile(file, $event)" ng-if="!file.uploading">{{getFilename(file)}}</a>'+
+					'				<span ng-if="file.uploading"><i class="fa fa-spinner fa-pulse"></i> {{getFilename(file)}}</span>'+
+					'			</td>'+
 					'			<td class="created">'+
 					'				<a href ng-click="openFile(file, $event)" ng-if="!file.directory && !file.uploading">{{getDate(file.created_at, options.dateFormat)}}</a>'+
 					'				<span ng-if="file.uploading">{{getDate(file.created_at, options.dateFormat)}}</span>'+
