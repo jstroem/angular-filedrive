@@ -40,10 +40,6 @@ gulp.task('clean', function(){
 	], {read: false}).pipe(rimraf());
 });
 
-gulp.task('build:pre', ['clean','mimetype'], function(){
-
-});
-
 gulp.task('build:target', ['clean', 'mkdir'], function(){
 	return gulp.src(['./src/Filedrive.js', './lib/mimetype.js', './src/directives/*.js','./src/services/*.js'])
     .pipe(uglify('angular-filedrive.js', {
