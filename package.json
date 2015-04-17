@@ -2,7 +2,9 @@
   "name": "angular-filedrive",
   "description": "angular-filedrive directive with custom connectors",
   "homepage": "https://github.com/jstroem/angular-filedrive",
-  "bugs": "https://github.com/jstroem/angular-filedrive/issues",
+  "bugs": {
+    "url": "https://github.com/jstroem/angular-filedrive/issues"
+  },
   "engines": {
     "node": ">= 0.8.0"
   },
@@ -21,5 +23,12 @@
   "dependencies": {
     "filesize": "^3.1.2",
     "mime-db": "^1.8.0"
-  }
+  },
+  "version": "0.1.0",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jesper Lindstrøm Nielsen <me@jstroem.com> (http://jstroem.com)",
+  "license": "MIT"
 }
