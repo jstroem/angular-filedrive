@@ -1265,4 +1265,4 @@ angular.module("Filedrive").service("FiledriveUploadCache", [ "FiledriveService"
         return files[dir] || [];
     };
 } ]);
-})(angular, global !== undefined ? global.filesize : window.filesize);
+})(angular, typeof global !== "undefined" ? global.filesize : window.filesize);
