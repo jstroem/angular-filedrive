@@ -5,8 +5,8 @@ angular.module("Filedrive").directive('filedriveListUi', ['FiledriveController',
 			'defaultOptions': '=options',
 			'interface': '=interface'
 		},
-		template: '<div ng-if="state == \'loading\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.loadingHtml"></h1></div>' +
-			'<div ng-if="state == \'error\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.errorHtml"></h1></div>' +
+		template: '<div ng-if="state == \'loading\'" class="filedrive"><h2 class="ui center aligned header" ng-bind-html="options.loadingHtml"></h2></div>' +
+			'<div ng-if="state == \'error\'" class="filedrive"><h2 class="ui center aligned header" ng-bind-html="options.errorHtml"></h2></div>' +
 			'<div ng-if="state == \'show\'" class="filedrive">' +
 			'	<table class="ui striped table" context-menu data-target="context-menu-directory">' +
 			'		<thead>' +
@@ -56,10 +56,8 @@ angular.module("Filedrive").directive('filedriveListUi', ['FiledriveController',
 			'		<a class="item" href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a>' +
 			'		<a class="item" href ng-click="deleteFile(file)">{{options.deleteContextMenuText}}</a>' +
 			'	</div>' +
-			'	<div class="dropdown context-menu" id="context-menu-directory">' +
-			'		<ul class="dropdown-menu" role="menu">' +
-			'			<li><a href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a></li>' +
-			'		</ul>' +
+			'	<div class="ui vertical menu context-menu" id="context-menu-directory">' +
+			'		<a href class="item" ng-click="newFolder()">{{options.newFolderContextMenuText}}</a>' +
 			'	</div>' +
 			'	<filedrop class="filedrop" data-drop="dropFile" data-drop-html="options.dropHtml"></filedrop>' +
 			'</div>',
