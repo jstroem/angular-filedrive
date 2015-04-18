@@ -1,4 +1,4 @@
-angular.module("Filedrive").directive('filedriveList', ['FiledriveController', function(controller) {
+angular.module("Filedrive").directive('filedriveListUi', ['FiledriveController', function(controller) {
 	return {
 		restrict: 'E',
 		scope: {
@@ -8,7 +8,7 @@ angular.module("Filedrive").directive('filedriveList', ['FiledriveController', f
 		template: '<div ng-if="state == \'loading\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.loadingHtml"></h1></div>' +
 			'<div ng-if="state == \'error\'" class="filedrive"><h1 class="text-center" ng-bind-html="options.errorHtml"></h1></div>' +
 			'<div ng-if="state == \'show\'" class="filedrive">' +
-			'	<table class="table table-striped" context-menu data-target="context-menu-directory">' +
+			'	<table class="ui striped table" context-menu data-target="context-menu-directory">' +
 			'		<thead>' +
 			'		<tr>' +
 			'			<th>Filename:</th>' +
@@ -51,12 +51,10 @@ angular.module("Filedrive").directive('filedriveList', ['FiledriveController', f
 			'		</tr>' +
 			'		</tbody>' +
 			'	</table>' +
-			'	<div ng-repeat="file in files" class="dropdown context-menu" id="context-menu-{{$index}}" ng-if="directory != file.path">' +
-			'		<ul class="dropdown-menu" role="menu">' +
-			'			<li><a href ng-click="renameFile(file)">{{options.renameContextMenuText}}</a></li>' +
-			'			<li><a href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a></li>' +
-			'			<li><a href ng-click="deleteFile(file)">{{options.deleteContextMenuText}}</a></li>' +
-			'		</ul>' +
+			'	<div ng-repeat="file in files" class="ui vertical menu context-menu" id="context-menu-{{$index}}" ng-if="directory != file.path">' +
+			'		<a class="item" href ng-click="renameFile(file)">{{options.renameContextMenuText}}</a>' +
+			'		<a class="item" href ng-click="newFolder()">{{options.newFolderContextMenuText}}</a>' +
+			'		<a class="item" href ng-click="deleteFile(file)">{{options.deleteContextMenuText}}</a>' +
 			'	</div>' +
 			'	<div class="dropdown context-menu" id="context-menu-directory">' +
 			'		<ul class="dropdown-menu" role="menu">' +
