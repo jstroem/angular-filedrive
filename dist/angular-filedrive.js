@@ -1232,13 +1232,13 @@ angular.module("Filedrive").factory("FiledriveController", [ "FiledriveService",
             e.preventDefault();
             $scope["interface"].openFile(file);
         };
+        var uploadFile = function(fileEntry) {
+            FiledriveService.createNewFilename(fileEntry, $.proxy($scope["interface"].exists, $scope["interface"])).then(function(name) {
+                $scope.files.push(UploadCache.addFile($scope["interface"].upload(fileEntry, name), getFiles));
+            }, onError);
+        };
         $scope.dropFile = function(fileEntries) {
-            if (fileEntries && void 0 !== fileEntries.length) for (var i = 0; i < fileEntries.length; i++) {
-                var fileEntry = fileEntries[i];
-                FiledriveService.createNewFilename(fileEntry, $.proxy($scope["interface"].exists, $scope["interface"])).then(function(name) {
-                    $scope.files.push(UploadCache.addFile($scope["interface"].upload(fileEntry, name), getFiles));
-                }, onError);
-            }
+            if (fileEntries && void 0 !== fileEntries.length) for (var i = 0; i < fileEntries.length; i++) uploadFile(fileEntries[i]);
         };
         $scope.deleteFile = function(file) {
             confirm($scope.options.deleteConfirmText) && $scope["interface"].deleteFile(file);
