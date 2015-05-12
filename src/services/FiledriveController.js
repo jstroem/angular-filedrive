@@ -26,7 +26,7 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 					$scope.files = res.concat(UploadCache.getFiles($scope.directory));
 				});
 			}, onError);
-		}
+		};
 
 		var onError = function(obj) {
 			$scope.$apply(function() {
@@ -40,7 +40,7 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 			e.stopPropagation();
 			e.preventDefault();
 			$scope.interface.openFile(file);
-		}
+		};
 
 
 		var uploadFile = function(fileEntry) {
@@ -60,21 +60,21 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 			if (confirm($scope.options.deleteConfirmText)) {
 				$scope.interface.deleteFile(file);
 			}
-		}
+		};
 
 		$scope.renameFile = function(file) {
 			var name = $scope.getFilename(file.path);
 			if (name = prompt($scope.options.renamePromptText, name)) {
 				$scope.interface.rename(file, name);
 			}
-		}
+		};
 
 		$scope.newFolder = function() {
 			var name = $scope.options.newFolderDefaultText;
 			if (name = prompt($scope.options.newFolderPromptText, name)) {
 				$scope.interface.createFolder(name);
 			}
-		}
+		};
 
 		$scope.interface.changeDirectory($location.search().dir || $scope.options.directory);
 
@@ -83,7 +83,7 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 		$scope.getDate = FiledriveService.getDate;
 		$scope.getSize = FiledriveService.getSize;
 		$scope.getMimetype = FiledriveService.getMimetype;
-	}
+	};
 
 	return controller;
 }]);
