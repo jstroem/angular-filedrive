@@ -5,11 +5,10 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 		$scope.files = [];
 		$scope.directory = null;
 
-		$scope.interface.on('Filedrive:ChangeDirectory', function(e, dir) {
-			$scope.directory = dir || $scope.options.directory;
-			$location.search('dir', $scope.directory);
+		$scope.changeDirectory = function(dir){
+			$scope.directory = dir;
 			getFiles();
-		});
+		};
 
 		$scope.interface.on('Filedrive:UpdateDirectory', function(e) {
 			getFiles();
@@ -39,13 +38,16 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 		$scope.openFile = function(file, e) {
 			e.stopPropagation();
 			e.preventDefault();
-			$scope.interface.openFile(file);
+			if (file.directory)
+				$scope.changeDirectory(file.path);
+			else
+				window.open($scope.interface.getFileUrl(file));
 		};
 
 
-		var uploadFile = function(fileEntry) {
-			FiledriveService.createNewFilename(fileEntry, $.proxy($scope.interface.exists, $scope.interface)).then(function(name) {
-				$scope.files.push(UploadCache.addFile($scope.interface.upload(fileEntry, name), getFiles));
+		var uploadFile = function(fileEntry, dir) {
+			FiledriveService.createNewFilename(fileEntry, dir, $.proxy($scope.interface.exists, $scope.interface)).then(function(name) {
+				$scope.files.push(UploadCache.addFile($scope.interface.upload(fileEntry, dir + name), getFiles));
 			}, onError);
 		};
 
@@ -53,7 +55,7 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 			if (!fileEntries || fileEntries.length === undefined)
 				return;
 			for (var i = 0; i < fileEntries.length; i++)
-				uploadFile(fileEntries[i]);
+				uploadFile(fileEntries[i], $scope.directory);
 		};
 
 		$scope.deleteFile = function(file) {
@@ -76,7 +78,7 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 			}
 		};
 
-		$scope.interface.changeDirectory($location.search().dir || $scope.options.directory);
+		$scope.changeDirectory($scope.options.directory);
 
 		$scope.getParentDirectory = FiledriveService.getParentDirectory;
 		$scope.getFilename = FiledriveService.getFilename;

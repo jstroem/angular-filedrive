@@ -40,7 +40,7 @@ angular.module("Filedrive").service('FiledriveService', ['$q','$filter', '$sce',
 		};
 	};
 
-	this.createNewFilename = function(fileEntry, exists, i, defer){
+	this.createNewFilename = function(fileEntry, dir, exists, i, defer){
 		if (defer === undefined)
 			defer = $q.defer();
 		if (i === undefined)
@@ -50,9 +50,9 @@ angular.module("Filedrive").service('FiledriveService', ['$q','$filter', '$sce',
 		if (i > 0)
 			name = name.substr(0, name.lastIndexOf('.')) + ' ('+i+').' + self.getFiletype(name);
 
-		exists(name).then(function(res){
+		exists(dir + name).then(function(res){
 			if (res)
-				self.createNewFilename(fileEntry, exists, i+1, defer);
+				self.createNewFilename(fileEntry, dir, exists, i+1, defer);
 			else
 				defer.resolve(name);
 		}, defer.reject);
@@ -81,7 +81,7 @@ angular.module("Filedrive").service('FiledriveService', ['$q','$filter', '$sce',
 	this.getSize = function(file){
 		if (file.size === null || file.size === undefined)
 			return '';
-		else 
+		else
 			return filesize(file.size);
 			
 	};

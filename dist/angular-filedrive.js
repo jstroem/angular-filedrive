@@ -1161,13 +1161,13 @@ angular.module("Filedrive").service("FiledriveService", [ "$q", "$filter", "$sce
             path: path
         };
     };
-    this.createNewFilename = function(fileEntry, exists, i, defer) {
+    this.createNewFilename = function(fileEntry, dir, exists, i, defer) {
         void 0 === defer && (defer = $q.defer());
         void 0 === i && (i = 0);
         var name = fileEntry.name;
         i > 0 && (name = name.substr(0, name.lastIndexOf(".")) + " (" + i + ")." + self.getFiletype(name));
-        exists(name).then(function(res) {
-            res ? self.createNewFilename(fileEntry, exists, i + 1, defer) : defer.resolve(name);
+        exists(dir + name).then(function(res) {
+            res ? self.createNewFilename(fileEntry, dir, exists, i + 1, defer) : defer.resolve(name);
         }, defer.reject);
         return defer.promise;
     };
@@ -1202,11 +1202,10 @@ angular.module("Filedrive").factory("FiledriveController", [ "FiledriveService",
         $scope.state = "loading";
         $scope.files = [];
         $scope.directory = null;
-        $scope["interface"].on("Filedrive:ChangeDirectory", function(e, dir) {
-            $scope.directory = dir || $scope.options.directory;
-            $location.search("dir", $scope.directory);
+        $scope.changeDirectory = function(dir) {
+            $scope.directory = dir;
             getFiles();
-        });
+        };
         $scope["interface"].on("Filedrive:UpdateDirectory", function(e) {
             getFiles();
         });
@@ -1230,15 +1229,15 @@ angular.module("Filedrive").factory("FiledriveController", [ "FiledriveService",
         $scope.openFile = function(file, e) {
             e.stopPropagation();
             e.preventDefault();
-            $scope["interface"].openFile(file);
+            file.directory ? $scope.changeDirectory(file.path) : window.open($scope["interface"].getFileUrl(file));
         };
-        var uploadFile = function(fileEntry) {
-            FiledriveService.createNewFilename(fileEntry, $.proxy($scope["interface"].exists, $scope["interface"])).then(function(name) {
-                $scope.files.push(UploadCache.addFile($scope["interface"].upload(fileEntry, name), getFiles));
+        var uploadFile = function(fileEntry, dir) {
+            FiledriveService.createNewFilename(fileEntry, dir, $.proxy($scope["interface"].exists, $scope["interface"])).then(function(name) {
+                $scope.files.push(UploadCache.addFile($scope["interface"].upload(fileEntry, dir + name), getFiles));
             }, onError);
         };
         $scope.dropFile = function(fileEntries) {
-            if (fileEntries && void 0 !== fileEntries.length) for (var i = 0; i < fileEntries.length; i++) uploadFile(fileEntries[i]);
+            if (fileEntries && void 0 !== fileEntries.length) for (var i = 0; i < fileEntries.length; i++) uploadFile(fileEntries[i], $scope.directory);
         };
         $scope.deleteFile = function(file) {
             confirm($scope.options.deleteConfirmText) && $scope["interface"].deleteFile(file);
@@ -1251,7 +1250,7 @@ angular.module("Filedrive").factory("FiledriveController", [ "FiledriveService",
             var name = $scope.options.newFolderDefaultText;
             (name = prompt($scope.options.newFolderPromptText, name)) && $scope["interface"].createFolder(name);
         };
-        $scope["interface"].changeDirectory($location.search().dir || $scope.options.directory);
+        $scope.changeDirectory($scope.options.directory);
         $scope.getParentDirectory = FiledriveService.getParentDirectory;
         $scope.getFilename = FiledriveService.getFilename;
         $scope.getDate = FiledriveService.getDate;
