@@ -74,7 +74,7 @@ angular.module('Filedrive').factory('FiledriveController', ['FiledriveService', 
 		$scope.newFolder = function() {
 			var name = $scope.options.newFolderDefaultText;
 			if (name = prompt($scope.options.newFolderPromptText, name)) {
-				$scope.interface.createFolder(name);
+				$scope.interface.createFolder($scope.directory + name);
 			}
 		};
 

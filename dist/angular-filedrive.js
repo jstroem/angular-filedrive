@@ -1248,7 +1248,7 @@ angular.module("Filedrive").factory("FiledriveController", [ "FiledriveService",
         };
         $scope.newFolder = function() {
             var name = $scope.options.newFolderDefaultText;
-            (name = prompt($scope.options.newFolderPromptText, name)) && $scope["interface"].createFolder(name);
+            (name = prompt($scope.options.newFolderPromptText, name)) && $scope["interface"].createFolder($scope.directory + name);
         };
         $scope.changeDirectory($scope.options.directory);
         $scope.getParentDirectory = FiledriveService.getParentDirectory;
